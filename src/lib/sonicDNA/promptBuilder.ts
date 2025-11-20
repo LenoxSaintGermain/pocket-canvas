@@ -1,5 +1,5 @@
 import { ARCHETYPES, Archetype } from './archetypes';
-import { translateToLeet, findLeetByTags } from './leetDictionary';
+import { translateToLeet, findLeetByTags, getRetrowaveStyle } from './leetDictionary';
 import { VOCAL_TEXTURES, VocalTexture, getVocalTextureById } from './vocalTextures';
 import { PLOT_TWISTS, PlotTwist, getRandomPlotTwist, getPlotTwistById, applyPlotTwist } from './plotTwists';
 import { INSTRUMENTATION_CATEGORIES } from './instrumentationTags';
@@ -25,6 +25,11 @@ export interface GeneratedPrompt {
   };
   sideA: string; // Variant A
   sideB: string; // Variant B
+  technicalParams: {
+    bpm?: number;
+    key?: string;
+    mode?: string;
+  };
 }
 
 export class SonicDNAEngine {
@@ -84,7 +89,12 @@ export class SonicDNAEngine {
         tags: this.generateTags(archetype, input.userVibe)
       },
       sideA,
-      sideB
+      sideB,
+      technicalParams: {
+        bpm: this.estimateBPM(genre),
+        key: this.selectKey(archetype),
+        mode: 'major'
+      }
     };
   }
   
@@ -211,18 +221,76 @@ export class SonicDNAEngine {
   }
   
   /**
-   * Generate a variant of the prompt (Side B)
+   * Generate a variant of the prompt (Side B) - True remix/alternative take
    */
   private generateVariant(originalPrompt: string): string {
-    // Simple variants: replace keywords
+    // Side B is a true remix - different plot twist, alternative instrumentation
     let variant = originalPrompt;
     
-    // Swap some words
-    variant = variant.replace('track', 'song');
-    variant = variant.replace('Instrumentation', 'Production');
-    variant = variant.replace('in the style of', 'inspired by');
+    // 1. Swap plot twist with a different one
+    const alternativeTwist = getRandomPlotTwist();
+    const twistMatch = originalPrompt.match(/\. ([^.]*(?:but|like|with|inspired)[^.]*)\./);
+    if (twistMatch) {
+      variant = variant.replace(twistMatch[0], `. ${alternativeTwist.formula}.`);
+    }
+    
+    // 2. Alternative instrumentation - strip drums for acoustic version if trap/hip-hop
+    if (originalPrompt.includes('808s') || originalPrompt.includes('trap')) {
+      variant = variant.replace(/808s[^,.]*/gi, 'acoustic guitar');
+      variant = variant.replace(/trap hi-hats[^,.]*/gi, 'light percussion');
+      variant = variant.replace(/Instrumentation:/gi, 'Acoustic Arrangement:');
+    } else {
+      // Add electronic elements if originally acoustic
+      variant = variant.replace(/acoustic guitar/gi, '808 bass');
+      variant = variant.replace(/Instrumentation:/gi, 'Electronic Production:');
+    }
+    
+    // 3. Apply Retrowave transformation to artist influences
+    const artistMatches = originalPrompt.match(/style of ([^.]+)\./);
+    if (artistMatches && artistMatches[1]) {
+      const artists = artistMatches[1].split(', ');
+      const retrowaveArtists = artists.map(artist => {
+        const cleanName = artist.replace(/[0-9$@]/g, match => {
+          const map: Record<string, string> = {'0': 'o', '1': 'i', '3': 'e', '4': 'a', '$': 's', '@': 'a'};
+          return map[match] || match;
+        });
+        return getRetrowaveStyle(cleanName);
+      });
+      variant = variant.replace(artistMatches[1], retrowaveArtists.join(', '));
+    }
+    
+    // 4. Append [Side B] tag
+    variant = variant.trim();
+    if (variant.endsWith('.')) {
+      variant = variant.slice(0, -1) + ' [Side B].';
+    } else {
+      variant += ' [Side B]';
+    }
     
     return variant;
+  }
+  
+  /**
+   * Estimate BPM based on genre
+   */
+  private estimateBPM(genre: string): number {
+    const lowerGenre = genre.toLowerCase();
+    if (lowerGenre.includes('trap') || lowerGenre.includes('hip hop')) return 140;
+    if (lowerGenre.includes('pop')) return 120;
+    if (lowerGenre.includes('afrobeats')) return 105;
+    if (lowerGenre.includes('rnb') || lowerGenre.includes('r&b')) return 90;
+    if (lowerGenre.includes('ballad')) return 70;
+    return 120; // default
+  }
+  
+  /**
+   * Select key based on archetype mood
+   */
+  private selectKey(archetype: Archetype): string {
+    const keys = ['C', 'D', 'E', 'F', 'G', 'A', 'Bb'];
+    // Deterministic selection based on archetype id
+    const index = archetype.id.length % keys.length;
+    return keys[index];
   }
 }
 

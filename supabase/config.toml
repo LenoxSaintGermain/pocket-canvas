@@ -1,1 +1,4 @@
 project_id = "wamqqkwuhcwbfnpkakgp"
+
+[functions.generate-track]
+verify_jwt = true
