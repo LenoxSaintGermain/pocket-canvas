@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ClickWheel } from "@/components/ClickWheel";
 import { Screen } from "@/components/Screen";
+import { SonicDNATest } from "@/components/SonicDNATest";
 import { Sparkles, Music, Zap, Users } from "lucide-react";
 
 type MenuOption = "artist-rpg" | "quick-mix" | "library" | "settings";
@@ -8,6 +9,7 @@ type MenuOption = "artist-rpg" | "quick-mix" | "library" | "settings";
 const Index = () => {
   const [selectedMenu, setSelectedMenu] = useState<MenuOption>("artist-rpg");
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [debugMode, setDebugMode] = useState(false);
 
   const menuOptions: { id: MenuOption; label: string; icon: any }[] = [
     { id: "artist-rpg", label: "Artist RPG", icon: Users },
@@ -141,12 +143,21 @@ const Index = () => {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 gap-8">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-4xl md:text-5xl font-orbitron font-black text-gradient-hero mb-2">
+        <h1 
+          className="text-4xl md:text-5xl font-orbitron font-black text-gradient-hero mb-2 cursor-pointer"
+          onClick={() => setDebugMode(!debugMode)}
+          title="Click to toggle Sonic DNA Test Console"
+        >
           PocketLegend
         </h1>
         <p className="text-sm text-muted-foreground font-orbitron">
           AI Music Creation · Powered by Sonic DNA
         </p>
+        {debugMode && (
+          <p className="text-xs text-primary mt-1 animate-pulse">
+            🧬 Debug Mode Active
+          </p>
+        )}
       </div>
 
       {/* Main iPod interface */}
@@ -186,6 +197,9 @@ const Index = () => {
           onMenuClick={() => setSelectedMenu("artist-rpg")}
         />
       </div>
+
+      {/* Sonic DNA Test Console (Debug Mode) */}
+      {debugMode && <SonicDNATest />}
     </div>
   );
 };
