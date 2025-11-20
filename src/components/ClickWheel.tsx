@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 // Base64 encoded mechanical click sound (short, crisp tick)
-const CLICK_SOUND_DATA_URI = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+const CLICK_SOUND_DATA_URI = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQQAAAAA//8A";
 
 interface ClickWheelProps {
   onMenuClick?: () => void;
@@ -62,27 +62,28 @@ export const ClickWheel = ({
     }
 
     const angle = Math.atan2(clientY - centerY, clientX - centerX) * (180 / Math.PI);
-    
+
     if (isScrolling) {
       const angleDiff = angle - lastAngleRef.current;
-      
-      if (Math.abs(angleDiff) > 10) {
+
+      // Trigger every ~15 degrees for a more mechanical feel
+      if (Math.abs(angleDiff) > 15) {
         if (angleDiff > 0) {
           onScroll?.("down");
         } else {
           onScroll?.("up");
         }
-        
+
         // Haptic feedback
         if ('vibrate' in navigator) {
           navigator.vibrate(10);
         }
-        
+
         // Audio feedback (tick sound)
         playClickSound();
       }
     }
-    
+
     lastAngleRef.current = angle;
   };
 
@@ -103,24 +104,24 @@ export const ClickWheel = ({
 
   const handleButtonClick = (action: () => void, section: string) => {
     setActiveSection(section);
-    
+
     // Haptic feedback
     if ('vibrate' in navigator) {
       navigator.vibrate(20);
     }
-    
+
     // Audio feedback (click sound)
     playClickSound();
-    
+
     action();
-    
+
     setTimeout(() => setActiveSection(null), 200);
   };
 
   return (
     <div className="relative flex items-center justify-center w-full max-w-[280px] aspect-square mx-auto">
       {/* Outer ring with gradient */}
-      <div 
+      <div
         ref={wheelRef}
         className="relative w-full h-full rounded-full bg-gradient-to-br from-muted via-card to-muted shadow-elegant overflow-hidden"
         onTouchStart={handleTouchStart}
@@ -129,61 +130,56 @@ export const ClickWheel = ({
       >
         {/* Touch-sensitive circular area */}
         <div className="absolute inset-0 rounded-full border-4 border-border/30" />
-        
+
         {/* Menu button - top */}
         <button
-          onClick={() => handleButtonClick(onMenuClick || (() => {}), "menu")}
-          className={`absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-xs font-orbitron font-bold uppercase tracking-wider transition-smooth ${
-            activeSection === "menu" 
-              ? "bg-primary text-primary-foreground scale-95" 
+          onClick={() => handleButtonClick(onMenuClick || (() => { }), "menu")}
+          className={`absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-xs font-orbitron font-bold uppercase tracking-wider transition-smooth ${activeSection === "menu"
+              ? "bg-primary text-primary-foreground scale-95"
               : "text-muted-foreground hover:text-foreground"
-          }`}
+            }`}
         >
           Menu
         </button>
 
         {/* Previous button - left */}
         <button
-          onClick={() => handleButtonClick(onPreviousClick || (() => {}), "prev")}
-          className={`absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-smooth ${
-            activeSection === "prev"
+          onClick={() => handleButtonClick(onPreviousClick || (() => { }), "prev")}
+          className={`absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-smooth ${activeSection === "prev"
               ? "bg-secondary text-secondary-foreground scale-95"
               : "text-muted-foreground hover:text-foreground"
-          }`}
+            }`}
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
 
         {/* Next button - right */}
         <button
-          onClick={() => handleButtonClick(onNextClick || (() => {}), "next")}
-          className={`absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-smooth ${
-            activeSection === "next"
+          onClick={() => handleButtonClick(onNextClick || (() => { }), "next")}
+          className={`absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-smooth ${activeSection === "next"
               ? "bg-secondary text-secondary-foreground scale-95"
               : "text-muted-foreground hover:text-foreground"
-          }`}
+            }`}
         >
           <ChevronRight className="w-5 h-5" />
         </button>
 
         {/* Play/Pause button - bottom */}
         <button
-          onClick={() => handleButtonClick(onPlayPauseClick || (() => {}), "play")}
-          className={`absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-xs font-orbitron font-bold uppercase tracking-wider transition-smooth ${
-            activeSection === "play"
+          onClick={() => handleButtonClick(onPlayPauseClick || (() => { }), "play")}
+          className={`absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-xs font-orbitron font-bold uppercase tracking-wider transition-smooth ${activeSection === "play"
               ? "bg-accent text-accent-foreground scale-95"
               : "text-muted-foreground hover:text-foreground"
-          }`}
+            }`}
         >
           Play
         </button>
 
         {/* Center button */}
         <button
-          onClick={() => handleButtonClick(onCenterClick || (() => {}), "center")}
-          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-gradient-primary flex items-center justify-center font-orbitron font-bold text-primary-foreground shadow-glow-primary transition-spring ${
-            activeSection === "center" ? "scale-90" : "hover:scale-105"
-          }`}
+          onClick={() => handleButtonClick(onCenterClick || (() => { }), "center")}
+          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-gradient-primary flex items-center justify-center font-orbitron font-bold text-primary-foreground shadow-glow-primary transition-spring ${activeSection === "center" ? "scale-90" : "hover:scale-105"
+            }`}
         >
           SELECT
         </button>

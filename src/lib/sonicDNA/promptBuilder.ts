@@ -33,7 +33,7 @@ export interface GeneratedPrompt {
 }
 
 export class SonicDNAEngine {
-  
+
   /**
    * Main function: Generate Suno prompt from user input
    */
@@ -41,24 +41,24 @@ export class SonicDNAEngine {
     // 1. Get archetype
     const archetype = ARCHETYPES[input.archetypeId];
     if (!archetype) throw new Error(`Archetype ${input.archetypeId} not found`);
-    
+
     // 2. Determine genre/vibe
     const genre = this.selectGenre(archetype, input.userVibe);
-    
+
     // 3. Find Leet references based on influences
     const leetRefs = this.getLeetReferences(input.customInfluences || [], archetype);
-    
+
     // 4. Select vocal texture
     const vocalTexture = this.selectVocalTexture(archetype);
-    
+
     // 5. Select instrumentation
     const instrumentation = this.selectInstrumentation(archetype, input.customInstrumentation);
-    
+
     // 6. Select plot twist
-    const plotTwist = input.plotTwistId 
+    const plotTwist = input.plotTwistId
       ? getPlotTwistById(input.plotTwistId) || getRandomPlotTwist()
       : getRandomPlotTwist();
-    
+
     // 7. Build the prompt using the formula
     const prompt = this.buildPromptFormula({
       genre,
@@ -69,14 +69,14 @@ export class SonicDNAEngine {
       archetype,
       tags: this.generateTags(archetype, input.userVibe)
     });
-    
+
     // 8. Optimize to 498 characters
     const optimizedPrompt = this.optimizeLength(prompt, 498);
-    
+
     // 9. Generate variants (Side A / Side B)
     const sideA = optimizedPrompt;
     const sideB = this.generateVariant(optimizedPrompt);
-    
+
     return {
       prompt: optimizedPrompt,
       characterCount: optimizedPrompt.length,
@@ -97,7 +97,7 @@ export class SonicDNAEngine {
       }
     };
   }
-  
+
   private selectGenre(archetype: Archetype, userVibe?: string): string {
     // If user specifies vibe, try to match genre
     if (userVibe) {
@@ -118,35 +118,35 @@ export class SonicDNAEngine {
     // Default: use first genre from archetype
     return archetype.defaultGenres[0];
   }
-  
+
   private getLeetReferences(influences: string[], archetype: Archetype): string[] {
     // Translate influences to Leet
     const leetInfluences = influences.map(inf => translateToLeet(inf));
-    
+
     // Also find Leet refs by archetype tags
     const archetypeRefs = findLeetByTags(archetype.defaultGenres.map(g => g.toLowerCase()));
-    
+
     // Combine and limit to 3
     const combined = [...new Set([...leetInfluences, ...archetypeRefs.map(r => r.leet)])];
     return combined.slice(0, 3);
   }
-  
+
   private selectVocalTexture(archetype: Archetype): VocalTexture {
     const presetId = archetype.vocalTexturePresets[0];
     return getVocalTextureById(presetId) || VOCAL_TEXTURES[0];
   }
-  
+
   private selectInstrumentation(archetype: Archetype, custom?: string[]): string[] {
     if (custom && custom.length > 0) return custom;
     return archetype.instrumentationTags;
   }
-  
+
   private generateTags(archetype: Archetype, userVibe?: string): string[] {
     const tags = [...archetype.defaultGenres];
     if (userVibe) tags.push(userVibe);
     return tags;
   }
-  
+
   /**
    * Build prompt using the formula:
    * [Genre/Vibe] + [Leet Ref] + [Instrumentation] + [Vocal Texture] + [Plot Twist] + [Tags]
@@ -161,20 +161,20 @@ export class SonicDNAEngine {
     tags: string[];
   }): string {
     const { genre, leetRefs, vocalTexture, instrumentation, plotTwist, tags } = parts;
-    
+
     // Build the prompt with Leet influences
     let prompt = `${genre} track`;
-    
+
     if (leetRefs.length > 0) {
       prompt += ` in the style of ${leetRefs.join(', ')}`;
     }
-    
+
     prompt += `. ${vocalTexture.sunoTag}.`;
-    
+
     if (instrumentation.length > 0) {
       prompt += ` Instrumentation: ${instrumentation.join(', ')}.`;
     }
-    
+
     // Apply plot twist with context
     const twistContext = {
       genre: tags[0],
@@ -182,28 +182,28 @@ export class SonicDNAEngine {
     };
     const appliedTwist = applyPlotTwist(plotTwist, twistContext);
     prompt += ` ${appliedTwist}.`;
-    
+
     if (tags.length > 0) {
       prompt += ` Tags: ${tags.join(', ')}.`;
     }
-    
+
     return prompt;
   }
-  
+
   /**
    * Optimize prompt to fit within character limit
    */
   private optimizeLength(prompt: string, maxLength: number): string {
     if (prompt.length <= maxLength) return prompt;
-    
+
     // Strategy: progressively remove less important parts
     let optimized = prompt;
-    
+
     // 1. Remove tags section if needed
     if (optimized.length > maxLength) {
       optimized = optimized.replace(/Tags:.*?\./g, '');
     }
-    
+
     // 2. Shorten instrumentation
     if (optimized.length > maxLength) {
       optimized = optimized.replace(/Instrumentation: (.+?)\./g, (match, instruments) => {
@@ -211,65 +211,71 @@ export class SonicDNAEngine {
         return `Instrumentation: ${instArray.slice(0, 2).join(', ')}.`;
       });
     }
-    
+
     // 3. If still too long, hard cut
     if (optimized.length > maxLength) {
       optimized = optimized.slice(0, maxLength - 3) + '...';
     }
-    
+
     return optimized;
   }
-  
+
   /**
    * Generate a variant of the prompt (Side B) - True remix/alternative take
    */
   private generateVariant(originalPrompt: string): string {
     // Side B is a true remix - different plot twist, alternative instrumentation
     let variant = originalPrompt;
-    
+
     // 1. Swap plot twist with a different one
     const alternativeTwist = getRandomPlotTwist();
-    const twistMatch = originalPrompt.match(/\. ([^.]*(?:but|like|with|inspired)[^.]*)\./);
-    if (twistMatch) {
-      variant = variant.replace(twistMatch[0], `. ${alternativeTwist.formula}.`);
-    }
-    
-    // 2. Alternative instrumentation - strip drums for acoustic version if trap/hip-hop
-    if (originalPrompt.includes('808s') || originalPrompt.includes('trap')) {
-      variant = variant.replace(/808s[^,.]*/gi, 'acoustic guitar');
-      variant = variant.replace(/trap hi-hats[^,.]*/gi, 'light percussion');
-      variant = variant.replace(/Instrumentation:/gi, 'Acoustic Arrangement:');
+    // Regex to find the plot twist sentence (usually starts after instrumentation or vocal texture)
+    // Looking for the sentence before "Tags:" or at the end if no tags
+    const twistMatch = variant.match(/(?:\. )([^.]*(?:but|like|with|inspired|suddenly|unexpectedly)[^.]*)\.(?: Tags:|$)/);
+
+    if (twistMatch && twistMatch[1]) {
+      variant = variant.replace(twistMatch[1], alternativeTwist.formula);
     } else {
-      // Add electronic elements if originally acoustic
-      variant = variant.replace(/acoustic guitar/gi, '808 bass');
-      variant = variant.replace(/Instrumentation:/gi, 'Electronic Production:');
+      // If we can't find it easily, just append the new twist before tags
+      const tagsIndex = variant.indexOf(' Tags:');
+      if (tagsIndex !== -1) {
+        variant = variant.slice(0, tagsIndex) + `. ${alternativeTwist.formula}.` + variant.slice(tagsIndex);
+      } else {
+        variant += ` ${alternativeTwist.formula}.`;
+      }
     }
-    
-    // 3. Apply Retrowave transformation to artist influences
-    const artistMatches = originalPrompt.match(/style of ([^.]+)\./);
+
+    // 2. Determine Remix Style based on original content
+    const isElectronic = /808|trap|synth|electronic|hip hop|pop/i.test(originalPrompt);
+
+    if (isElectronic) {
+      // Force "Unplugged / Live" Version
+      variant = variant.replace(/808s|808 bass|sub bass/gi, 'upright bass');
+      variant = variant.replace(/trap hi-hats|drum machine/gi, 'live jazz drums');
+      variant = variant.replace(/synth|synthesizer/gi, 'grand piano');
+      variant = variant.replace(/Instrumentation:.*?\./, 'Instrumentation: Acoustic Arrangement, Grand Piano, Upright Bass, Live Drums.');
+      variant += ' [Unplugged Remix]';
+    } else {
+      // Force "Chopped & Screwed / Lo-Fi" Version
+      variant = variant.replace(/acoustic guitar|piano|live drums/gi, 'heavy 808s');
+      variant = variant.replace(/Instrumentation:.*?\./, 'Instrumentation: Chopped & Screwed, Heavy 808s, Slowed Down, Pitch Shifted Vocals.');
+      variant += ' [Chopped & Screwed Remix]';
+    }
+
+    // 3. Apply Retrowave transformation to artist influences (keep this cool feature)
+    const artistMatches = variant.match(/style of ([^.]+)\./);
     if (artistMatches && artistMatches[1]) {
       const artists = artistMatches[1].split(', ');
       const retrowaveArtists = artists.map(artist => {
-        const cleanName = artist.replace(/[0-9$@]/g, match => {
-          const map: Record<string, string> = {'0': 'o', '1': 'i', '3': 'e', '4': 'a', '$': 's', '@': 'a'};
-          return map[match] || match;
-        });
-        return getRetrowaveStyle(cleanName);
+        // Simple Leet-ish transformation for "Remix" artist names
+        return artist.split('').map((char, i) => i % 2 === 0 ? char.toUpperCase() : char.toLowerCase()).join('');
       });
       variant = variant.replace(artistMatches[1], retrowaveArtists.join(', '));
     }
-    
-    // 4. Append [Side B] tag
-    variant = variant.trim();
-    if (variant.endsWith('.')) {
-      variant = variant.slice(0, -1) + ' [Side B].';
-    } else {
-      variant += ' [Side B]';
-    }
-    
+
     return variant;
   }
-  
+
   /**
    * Estimate BPM based on genre
    */
@@ -282,7 +288,7 @@ export class SonicDNAEngine {
     if (lowerGenre.includes('ballad')) return 70;
     return 120; // default
   }
-  
+
   /**
    * Select key based on archetype mood
    */
