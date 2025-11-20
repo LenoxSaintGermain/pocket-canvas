@@ -95,3 +95,27 @@ export function findLeetByTags(tags: string[]): LeetReference[] {
 export function findLeetByCategory(category: LeetReference['category']): LeetReference[] {
   return LEET_DICTIONARY.filter(ref => ref.category === category);
 }
+
+/**
+ * Retrowave Style Translation Map - Converts modern artists to 80s synthwave equivalents
+ */
+const RETROWAVE_MAP: Record<string, string> = {
+  'Drake': 'Dr. Ake (Synthwave Ver)',
+  'The Weeknd': 'The W33kend (Retrowave Mix)',
+  'SZA': 'S.Z.A. (80s Edit)',
+  'Travis Scott': 'Travis Sc0tt (Neon Nights)',
+  'Ariana Grande': 'Ariana Grand3 (Vapor Edit)',
+  'Future': 'FUtUr3 (Retro Future)',
+  'Billie Eilish': 'Billie 31lish (Cyber Dreams)',
+  'Dua Lipa': 'Dua Lip4 (Disco Redux)',
+  'Burna Boy': 'Burn4 Boy (Afro Synth)',
+  'Kendrick Lamar': 'K3ndrick (80s Fusion)',
+};
+
+/**
+ * Get Retrowave Style - Translates modern artist names into 80s synth-wave equivalents
+ * This creates a specific "Retro Mode" capability for Side B variants
+ */
+export function getRetrowaveStyle(artistName: string): string {
+  return RETROWAVE_MAP[artistName] || `${translateToLeet(artistName)} (Retrowave Ver)`;
+}

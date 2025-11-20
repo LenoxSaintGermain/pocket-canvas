@@ -81,6 +81,7 @@ export type Database = {
           id: string
           leet_code: string | null
           plot_twist: string | null
+          status: string | null
           suno_prompt: string
           title: string
           user_id: string
@@ -92,6 +93,7 @@ export type Database = {
           id?: string
           leet_code?: string | null
           plot_twist?: string | null
+          status?: string | null
           suno_prompt: string
           title: string
           user_id: string
@@ -103,6 +105,7 @@ export type Database = {
           id?: string
           leet_code?: string | null
           plot_twist?: string | null
+          status?: string | null
           suno_prompt?: string
           title?: string
           user_id?: string

@@ -10,6 +10,7 @@ const Index = () => {
   const [selectedMenu, setSelectedMenu] = useState<MenuOption>("artist-rpg");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [debugMode, setDebugMode] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   const menuOptions: { id: MenuOption; label: string; icon: any }[] = [
     { id: "artist-rpg", label: "Artist RPG", icon: Users },
@@ -125,6 +126,17 @@ const Index = () => {
             </div>
             
             <div className="space-y-2">
+              {/* Sound Effects Toggle */}
+              <div 
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className="bg-muted/30 rounded-xl p-4 border border-border/30 hover:border-border transition-smooth cursor-pointer flex items-center justify-between"
+              >
+                <p className="font-medium">Sound Effects</p>
+                <div className={`w-12 h-6 rounded-full transition-smooth ${soundEnabled ? 'bg-primary' : 'bg-muted'} relative`}>
+                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-smooth ${soundEnabled ? 'right-1' : 'left-1'}`} />
+                </div>
+              </div>
+              
               {["Account", "Audio Quality", "Haptic Feedback", "About"].map((setting) => (
                 <div 
                   key={setting}
@@ -195,6 +207,7 @@ const Index = () => {
           onScroll={handleScroll}
           onCenterClick={handleCenterClick}
           onMenuClick={() => setSelectedMenu("artist-rpg")}
+          soundEnabled={soundEnabled}
         />
       </div>
 

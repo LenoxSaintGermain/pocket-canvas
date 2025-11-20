@@ -17,15 +17,26 @@ export const Screen = ({ children, title }: ScreenProps) => {
         </div>
       )}
       
-      {/* Screen content area */}
+      {/* Screen content area with retro effects */}
       <div 
-        className="bg-background min-h-[400px] max-h-[500px] overflow-y-auto p-6"
+        className="bg-background min-h-[400px] max-h-[500px] overflow-y-auto p-6 relative"
         style={{
           scrollbarWidth: 'thin',
           scrollbarColor: 'hsl(var(--primary)) hsl(var(--muted))'
         }}
       >
-        {children}
+        {/* Scanline overlay for retro OLED/LCD effect */}
+        <div 
+          className="absolute inset-0 pointer-events-none opacity-10"
+          style={{
+            background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, hsl(var(--primary)) 2px, hsl(var(--primary)) 4px)',
+          }}
+        />
+        
+        {/* Content with text glow */}
+        <div className="relative z-10" style={{ textShadow: '0 0 8px hsl(var(--primary) / 0.3)' }}>
+          {children}
+        </div>
       </div>
     </div>
   );

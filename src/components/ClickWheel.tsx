@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
+// Base64 encoded mechanical click sound (short, crisp tick)
+const CLICK_SOUND_DATA_URI = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+
 interface ClickWheelProps {
   onMenuClick?: () => void;
   onPlayPauseClick?: () => void;
@@ -8,6 +11,7 @@ interface ClickWheelProps {
   onNextClick?: () => void;
   onCenterClick?: () => void;
   onScroll?: (direction: "up" | "down") => void;
+  soundEnabled?: boolean;
 }
 
 export const ClickWheel = ({
@@ -17,11 +21,28 @@ export const ClickWheel = ({
   onNextClick,
   onCenterClick,
   onScroll,
+  soundEnabled = true,
 }: ClickWheelProps) => {
   const wheelRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [isScrolling, setIsScrolling] = useState(false);
   const lastAngleRef = useRef<number>(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio element
+  useEffect(() => {
+    audioRef.current = new Audio(CLICK_SOUND_DATA_URI);
+    audioRef.current.volume = 0.3;
+  }, []);
+
+  const playClickSound = () => {
+    if (soundEnabled && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => {
+        // Ignore audio play errors (e.g., user hasn't interacted yet)
+      });
+    }
+  };
 
   const handleCircularScroll = (e: React.TouchEvent | React.MouseEvent) => {
     if (!wheelRef.current) return;
@@ -56,6 +77,9 @@ export const ClickWheel = ({
         if ('vibrate' in navigator) {
           navigator.vibrate(10);
         }
+        
+        // Audio feedback (tick sound)
+        playClickSound();
       }
     }
     
@@ -84,6 +108,9 @@ export const ClickWheel = ({
     if ('vibrate' in navigator) {
       navigator.vibrate(20);
     }
+    
+    // Audio feedback (click sound)
+    playClickSound();
     
     action();
     
