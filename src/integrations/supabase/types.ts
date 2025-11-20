@@ -14,7 +14,116 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      artists: {
+        Row: {
+          archetype: string
+          created_at: string | null
+          id: string
+          leet_influences: string[] | null
+          level: number | null
+          name: string
+          user_id: string
+          xp: number | null
+        }
+        Insert: {
+          archetype: string
+          created_at?: string | null
+          id?: string
+          leet_influences?: string[] | null
+          level?: number | null
+          name: string
+          user_id: string
+          xp?: number | null
+        }
+        Update: {
+          archetype?: string
+          created_at?: string | null
+          id?: string
+          leet_influences?: string[] | null
+          level?: number | null
+          name?: string
+          user_id?: string
+          xp?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artists_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      tracks: {
+        Row: {
+          artist_id: string
+          audio_url: string | null
+          created_at: string | null
+          id: string
+          leet_code: string | null
+          plot_twist: string | null
+          suno_prompt: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          artist_id: string
+          audio_url?: string | null
+          created_at?: string | null
+          id?: string
+          leet_code?: string | null
+          plot_twist?: string | null
+          suno_prompt: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          artist_id?: string
+          audio_url?: string | null
+          created_at?: string | null
+          id?: string
+          leet_code?: string | null
+          plot_twist?: string | null
+          suno_prompt?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracks_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tracks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
