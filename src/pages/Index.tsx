@@ -1,16 +1,19 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ClickWheel } from "@/components/ClickWheel";
 import { Screen } from "@/components/Screen";
 import { SonicDNATest } from "@/components/SonicDNATest";
+import { ArtistRPG, ArtistRPGRef } from "@/components/ArtistRPG";
 import { Sparkles, Music, Zap, Users } from "lucide-react";
 
 type MenuOption = "artist-rpg" | "quick-mix" | "library" | "settings";
 
 const Index = () => {
-  const [selectedMenu, setSelectedMenu] = useState<MenuOption>("artist-rpg");
+  const [selectedMenu, setSelectedMenu] = useState<MenuOption | null>(null); // null means main menu
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [debugMode, setDebugMode] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  const artistRPGRef = useRef<ArtistRPGRef>(null);
 
   const menuOptions: { id: MenuOption; label: string; icon: any }[] = [
     { id: "artist-rpg", label: "Artist RPG", icon: Users },
@@ -20,51 +23,66 @@ const Index = () => {
   ];
 
   const handleScroll = (direction: "up" | "down") => {
-    setSelectedIndex((prev) => {
-      if (direction === "up") {
-        return Math.max(0, prev - 1);
-      } else {
-        return Math.min(menuOptions.length - 1, prev + 1);
-      }
-    });
+    if (selectedMenu === "artist-rpg" && artistRPGRef.current) {
+      // Delegate to ArtistRPG
+      artistRPGRef.current.handleScroll(direction);
+    } else if (!selectedMenu) {
+      // Main Menu Navigation
+      setSelectedIndex((prev) => {
+        if (direction === "up") {
+          return Math.max(0, prev - 1);
+        } else {
+          return Math.min(menuOptions.length - 1, prev + 1);
+        }
+      });
+    }
   };
 
   const handleCenterClick = () => {
-    setSelectedMenu(menuOptions[selectedIndex].id);
+    if (selectedMenu === "artist-rpg" && artistRPGRef.current) {
+      // Delegate to ArtistRPG
+      artistRPGRef.current.handleCenterClick();
+    } else if (!selectedMenu) {
+      // Select Menu Item
+      setSelectedMenu(menuOptions[selectedIndex].id);
+    }
+  };
+
+  const handleMenuClick = () => {
+    // Back button functionality
+    if (selectedMenu) {
+      setSelectedMenu(null);
+    }
   };
 
   const renderContent = () => {
+    if (!selectedMenu) {
+      // Main Menu View
+      return (
+        <div className="space-y-2">
+          {menuOptions.map((option, index) => {
+            const Icon = option.icon;
+            return (
+              <div
+                key={option.id}
+                className={`flex items-center gap-3 p-3 rounded-xl transition-smooth cursor-pointer ${selectedIndex === index
+                    ? "bg-primary text-primary-foreground scale-[1.02] shadow-glow-primary"
+                    : "bg-muted/30 hover:bg-muted/50"
+                  }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="font-orbitron font-semibold">{option.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
     switch (selectedMenu) {
       case "artist-rpg":
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h3 className="text-2xl font-orbitron font-bold text-gradient-primary mb-2">
-                Artist RPG Mode
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Create your synthetic artist and start your musical journey
-              </p>
-            </div>
-            
-            <div className="bg-card/50 rounded-2xl p-6 border border-primary/20 glow-primary">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center">
-                  <Users className="w-6 h-6 text-primary-foreground" />
-                </div>
-                <div>
-                  <h4 className="font-orbitron font-semibold">New Artist</h4>
-                  <p className="text-xs text-muted-foreground">Level 1 · 0 XP</p>
-                </div>
-              </div>
-              
-              <p className="text-sm text-muted-foreground">
-                Select this option to create your first artist and begin generating tracks with the Sonic DNA system.
-              </p>
-            </div>
-          </div>
-        );
-      
+        return <ArtistRPG ref={artistRPGRef} onBack={() => setSelectedMenu(null)} />;
+
       case "quick-mix":
         return (
           <div className="space-y-6">
@@ -76,10 +94,10 @@ const Index = () => {
                 Fast-track music generation without the story
               </p>
             </div>
-            
+
             <div className="grid gap-3">
               {["Kids Songs", "Jingles", "Background Music", "Workout Tracks"].map((preset) => (
-                <div 
+                <div
                   key={preset}
                   className="bg-muted/50 rounded-xl p-4 border border-border/50 hover:border-secondary/50 transition-smooth cursor-pointer"
                 >
@@ -90,7 +108,7 @@ const Index = () => {
             </div>
           </div>
         );
-      
+
       case "library":
         return (
           <div className="space-y-6">
@@ -102,7 +120,7 @@ const Index = () => {
                 Your generated tracks and artists
               </p>
             </div>
-            
+
             <div className="text-center py-12">
               <Music className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
               <p className="text-muted-foreground">No tracks yet</p>
@@ -112,7 +130,7 @@ const Index = () => {
             </div>
           </div>
         );
-      
+
       case "settings":
         return (
           <div className="space-y-6">
@@ -124,10 +142,10 @@ const Index = () => {
                 Customize your PocketLegend experience
               </p>
             </div>
-            
+
             <div className="space-y-2">
               {/* Sound Effects Toggle */}
-              <div 
+              <div
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 className="bg-muted/30 rounded-xl p-4 border border-border/30 hover:border-border transition-smooth cursor-pointer flex items-center justify-between"
               >
@@ -136,9 +154,9 @@ const Index = () => {
                   <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-smooth ${soundEnabled ? 'right-1' : 'left-1'}`} />
                 </div>
               </div>
-              
+
               {["Account", "Audio Quality", "Haptic Feedback", "About"].map((setting) => (
-                <div 
+                <div
                   key={setting}
                   className="bg-muted/30 rounded-xl p-4 border border-border/30 hover:border-border transition-smooth cursor-pointer"
                 >
@@ -155,7 +173,7 @@ const Index = () => {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 gap-8">
       {/* Header */}
       <div className="text-center">
-        <h1 
+        <h1
           className="text-4xl md:text-5xl font-orbitron font-black text-gradient-hero mb-2 cursor-pointer"
           onClick={() => setDebugMode(!debugMode)}
           title="Click to toggle Sonic DNA Test Console"
@@ -176,28 +194,8 @@ const Index = () => {
       <div className="w-full max-w-md space-y-6">
         {/* Screen */}
         <Screen>
-          {/* Menu selection */}
-          <div className="mb-6 space-y-2">
-            {menuOptions.map((option, index) => {
-              const Icon = option.icon;
-              return (
-                <div
-                  key={option.id}
-                  className={`flex items-center gap-3 p-3 rounded-xl transition-smooth cursor-pointer ${
-                    selectedIndex === index
-                      ? "bg-primary text-primary-foreground scale-[1.02] shadow-glow-primary"
-                      : "bg-muted/30 hover:bg-muted/50"
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-orbitron font-semibold">{option.label}</span>
-                </div>
-              );
-            })}
-          </div>
-
           {/* Selected content */}
-          <div className="border-t border-border pt-6">
+          <div className="h-full flex flex-col">
             {renderContent()}
           </div>
         </Screen>
@@ -206,7 +204,7 @@ const Index = () => {
         <ClickWheel
           onScroll={handleScroll}
           onCenterClick={handleCenterClick}
-          onMenuClick={() => setSelectedMenu("artist-rpg")}
+          onMenuClick={handleMenuClick}
           soundEnabled={soundEnabled}
         />
       </div>
