@@ -1,0 +1,14 @@
+status: draft
+title: PocketLegend
+pitch: A retro-futuristic music RPG where the iPod Click Wheel of 2001 controls AI-powered music generation, letting users build chart-topping synthetic artists from the palm of their hand.
+category: media
+platform: lovable
+featured: false
+live_url: https://mobile-canvas-suite.lovable.app
+cover_prompt: A glowing green monochrome iPod Click Wheel interface floating in a dark void, with digital sound waves and musical notes emanating from its screen, evoking 2001 tech nostalgia meets futuristic AI music creation.
+tags:
+  - music
+  - ai
+  - retro
+  - rpg
+  - generative-audio
